@@ -1,0 +1,108 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  clerkId String  @unique
+  email   String  @unique
+  name    String?
+
+  menus Menu[]
+}
+
+model Menu {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  date String
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  userMeals UserMeal[]
+
+
+  @@unique([date, userId]) // Compound unique constraint
+}
+
+model UserMeal {
+  id         String @id @default(uuid())
+  name       String
+  multiplier Int
+
+  menuId String
+  menu   Menu   @relation(fields: [menuId], references: [id])
+
+  mealId String
+  meal   Meal   @relation(fields: [mealId], references: [id])
+}
+
+model Meal {
+  id   String @id @default(uuid())
+  name String
+
+  // userMealId String
+  userMeals  UserMeal[]
+
+  dishes Dish[] @relation("MealDish")
+}
+
+model Dish {
+  id   String @id @default(uuid())
+  name String
+
+  meals Meal[] @relation("MealDish")
+  ingridients Ingridient[] @relation("DishIngridients")
+
+
+  dishCategoryId String
+  dishCategory DishCategory @relation(fields: [dishCategoryId], references: [id])
+
+  tags DishTag[] @relation("DishTags")
+}
+
+model Ingridient {
+  id   String @id @default(uuid())
+  name String
+
+  caloricValue  Int
+  calories      Int
+  proteins      Int
+  carbohydrates Int
+  fat           Int
+
+  dishes Dish[] @relation("DishIngridients")
+
+
+}
+
+
+model DishCategory {
+  id String @id @default(uuid())
+  name String
+
+  dishes Dish[]
+}
+
+model DishTag {
+  id String @id @default(uuid())
+  name String
+
+  dishes Dish[] @relation("DishTags")
+}
